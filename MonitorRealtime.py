@@ -1,7 +1,6 @@
 import os
 import platform
 import sys
-
 import psutil
 import cpuinfo
 import socket

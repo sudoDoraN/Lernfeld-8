@@ -1,0 +1,2 @@
+psinfo
+cpuinfo
