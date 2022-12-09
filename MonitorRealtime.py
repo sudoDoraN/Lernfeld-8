@@ -64,6 +64,11 @@ def GetSystem():
     else:
         return "Unknown"
 
+def WriteToLog(message):
+    fileName = f"{datetime.today().strftime('%d-%m-%y')}.log"
+
+    with open(fileName, "a") as logFile:
+        logFile.write(message + "\n")
 
 #
 # Ausgabe Nachrichten
@@ -76,19 +81,25 @@ def PrintMessageInfo(timestamp):
 
 def PrintMessageCPU(cpuPercent):
     if cpuPercent >= 90:
-        print(f"{Colors.CRITICAL}{Colors.BOLD}{Colors.UNDERLINE}KRITISCH:{Colors.END}{Colors.CRITICAL} CPU-Last: Hoch - Aktuell: {cpuPercent}%{Colors.END}")
+        print(f"{Colors.CRITICAL}{Colors.BOLD}{Colors.UNDERLINE}KRITISCH:{Colors.END}{Colors.CRITICAL} CPU-Auslastung: Hoch - Aktuell: {cpuPercent}%{Colors.END}")
+        WriteToLog(f"[{timestamp}] KRITISCH: CPU-Auslastung: Hoch - Aktuell: {cpuPercent}%")
     elif cpuPercent >= 60 and cpuPercent <= 89:
-        print(f"{Colors.WARNING}{Colors.BOLD}{Colors.UNDERLINE}WARNUNG:{Colors.END}{Colors.WARNING} CPU-Last: Mittel - Aktuell: {cpuPercent}%{Colors.END}")
+        print(f"{Colors.WARNING}{Colors.BOLD}{Colors.UNDERLINE}WARNUNG:{Colors.END}{Colors.WARNING} CPU-Auslastung: Mittel - Aktuell: {cpuPercent}%{Colors.END}")
+        WriteToLog(f"[{timestamp}] WARNUNG: CPU-Auslastung: Mittel - Aktuell: {cpuPercent}%")
     else:
-        print(f"{Colors.OK}{Colors.BOLD}{Colors.UNDERLINE}OK:{Colors.END}{Colors.OK} CPU-Last: Minimal - Aktuell: {cpuPercent}%{Colors.END}")
+        print(f"{Colors.OK}{Colors.BOLD}{Colors.UNDERLINE}OK:{Colors.END}{Colors.OK} CPU-Auslastung: Minimal - Aktuell: {cpuPercent}%{Colors.END}")
+        WriteToLog(f"[{timestamp}] OK: CPU-Auslastung: Minimal - Aktuell: {cpuPercent}%")
 
 def PrintMessageRAM(memoryPercent):
     if memoryPercent >= 90:
         print(f"{Colors.CRITICAL}{Colors.BOLD}{Colors.UNDERLINE}KRITISCH:{Colors.END}{Colors.CRITICAL} RAM-Auslastung: Hoch - Aktuell: {memoryPercent}%{Colors.END}")
+        WriteToLog(f"[{timestamp}] KRITISCH: RAM-Auslastung: Hoch - Aktuell: {memoryPercent}%")
     if memoryPercent >= 60 and memoryPercent <= 89:
         print(f"{Colors.WARNING}{Colors.BOLD}{Colors.UNDERLINE}WARNUNG:{Colors.END}{Colors.WARNING} RAM-Auslastung: Mittel - Aktuell: {memoryPercent}%{Colors.END}")
+        WriteToLog(f"[{timestamp}] WARNUNG: RAM-Auslastung: Mittel - Aktuell: {memoryPercent}%")
     else:
         print(f"{Colors.OK}{Colors.BOLD}{Colors.UNDERLINE}OK:{Colors.END}{Colors.OK} RAM-Auslastung: Minimal - Aktuell: {memoryPercent}%{Colors.END}")
+        WriteToLog(f"[{timestamp}] OK: RAM-Auslastung: Minimal - Aktuell: {memoryPercent}%")
 
 def PrintMessageDisk(disks):
     print (f"{Colors.UNDERLINE}{Colors.BOLD}Speicherplatz:{Colors.END}\n")
@@ -96,6 +107,7 @@ def PrintMessageDisk(disks):
         if "Z:\\" not in disk:
             disk_usage = GetDiskUsagePercent(disk.device)
             print (f"{Colors.UNDERLINE}{Colors.BOLD}{disk.device}:{Colors.END} {disk_usage}% {Colors.END}")
+            WriteToLog(f"[{timestamp}] {disk.device}: {disk_usage}%")
 
 def PrintGraphDisplay(cpu_usage, mem_usage, bars=50):
     cpu_ratio = (cpu_usage / 100)
