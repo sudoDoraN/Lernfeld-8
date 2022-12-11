@@ -119,13 +119,14 @@ try:
     logicalcount = GetCPUCount(True)
     systemname = platform.system()
     systemrelease = GetRelease()
-    disks = GetDisks()
+    
 
     # While-Schleife
     while True:
         timestamp = datetime.now().strftime("%d/%m/%y - %H:%M:%S")
         cpuPercent = GetCPUPercent()
         memoryPercent = GetMemoryPercent()
+        disks = GetDisks()
 
         ClearScreen()
 
