@@ -1,3 +1,4 @@
+import getpass
 import os
 import platform
 import sys
@@ -27,7 +28,7 @@ def GetHostname():
     return socket.gethostname()
 
 def GetLoggedInUser():
-    return os.getlogin()
+    return getpass.getuser()
 
 def GetCPUCount(useLogical):
     return psutil.cpu_count(logical=useLogical)
