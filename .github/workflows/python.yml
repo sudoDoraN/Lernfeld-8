@@ -24,3 +24,5 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Starten des Monitor Skripts
       run: python MonitorRealtime.py -r 1
+    - name: Unittest
+      run: python Test_Monitor.py
