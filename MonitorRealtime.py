@@ -105,7 +105,7 @@ def PrintMessageRAM(memoryPercent):
 def PrintMessageDisk(disks):
     print (f"{Colors.UNDERLINE}{Colors.BOLD}Speicherplatz:{Colors.END}\n")
     for disk in disks:
-        if "Z:\\" not in disk:
+        if "Z:\\" not in disk or "devtmpfs" not in disk:
             disk_usage = GetDiskUsagePercent(disk.device)
             print (f"{Colors.UNDERLINE}{Colors.BOLD}{disk.device}:{Colors.END} {disk_usage}% {Colors.END}")
             WriteToLog(f"[{timestamp}] {disk.device}: {disk_usage}%")
@@ -122,11 +122,14 @@ def PrintGraphDisplay(cpu_usage, mem_usage, bars=50):
     print(f"RAM Usage:  |{mem_bars}|{Colors.END}  ", end="\n")
 
 def PrintHelpMessage():
-    print("Monitor.py Hilfe:")
-    print(" - python Monitor.py [-h] [-r <Anzahl>]")
     print("")
+    print("MonitorRealtime.py")
+    print("Benutze: python MonitorRealtime.py [-h] [-r <Anzahl>]")
+    print("")
+    print("Mögliche Argumente:")
     print(" -h : Ausgabe der Hilfe")
     print(" -r <Anzahl> : Wie oft das Skript wiederholt werden soll")
+    print("")
 
 #
 # Main
@@ -179,8 +182,9 @@ if __name__ == '__main__':
 
     except KeyboardInterrupt:
 
-        print("Monitoring beendet!")
+        print(f"{Colors.INFO}Monitoring beendet!")
+        print("")
         sys.exit(1)
 
     except Exception as e:
-        print(f"Fehler: {e}")
+        print(f"{Colors.CRITICAL}Fehler: {e}{Colors.END}")
