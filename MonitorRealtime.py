@@ -51,16 +51,13 @@ def GetRelease():
     else:
         return platform.release()
 
-def GetSystem():
-    return platform.system()
-
 #
 # Funktionen
 #
 def ClearScreen():
     os.system('cls' if os.name=='nt' else 'clear')
 
-def GetOSName():
+def GetSystem():
     if os.name == "nt":
         return "NT"
     elif os.name == "posix":
@@ -150,11 +147,11 @@ if __name__ == '__main__':
 
     try:
         # Satische Variablen
-        system = GetOSName()
+        system = GetSystem()
         prozessor = cpuinfo.get_cpu_info()['brand_raw']
         cpucount = GetCPUCount(False)
         logicalcount = GetCPUCount(True)
-        systemname = GetSystem()
+        systemname = platform.system()
         systemrelease = GetRelease()
         repeatCounter = 0
 
