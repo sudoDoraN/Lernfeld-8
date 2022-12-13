@@ -179,13 +179,13 @@ if __name__ == '__main__':
             if 'repeat' in globals():
                 repeatCounter += 1
                 if repeatCounter >= int(repeat):
-                    sys.exit(1)
+                    sys.exit()
 
     except KeyboardInterrupt:
 
-        print(f"{Colors.INFO}Monitoring beendet!")
+        print(f"{Colors.INFO}Monitoring beendet!{Colors.END}")
         print("")
-        sys.exit(1)
+        sys.exit()
 
     except Exception as e:
         print(f"{Colors.CRITICAL}Fehler: {e}{Colors.END}")
