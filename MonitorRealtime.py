@@ -103,12 +103,13 @@ def PrintMessageRAM(memoryPercent):
         WriteToLog(f"[{timestamp} - {GetLoggedInUser()}] OK: RAM-Auslastung: Minimal - Aktuell: {memoryPercent}%")
 
 def PrintMessageDisk(disks):
-    print (f"{Colors.UNDERLINE}{Colors.BOLD}Speicherplatz:{Colors.END}\n")
-    for disk in disks:
-        if "Z:\\" not in disk or "devtmpfs" not in disk:
-            disk_usage = GetDiskUsagePercent(disk.device)
-            print (f"{Colors.UNDERLINE}{Colors.BOLD}{disk.device}:{Colors.END} {disk_usage}% {Colors.END}")
-            WriteToLog(f"[{timestamp}] {disk.device}: {disk_usage}%")
+    if GetLoggedInUser() != "runner":
+        print (f"{Colors.UNDERLINE}{Colors.BOLD}Speicherplatz:{Colors.END}\n")
+        for disk in disks:
+            if "Z:\\" not in disk:
+                disk_usage = GetDiskUsagePercent(disk.device)
+                print (f"{Colors.UNDERLINE}{Colors.BOLD}{disk.device}:{Colors.END} {disk_usage}% {Colors.END}")
+                WriteToLog(f"[{timestamp}] {disk.device}: {disk_usage}%")
 
 def PrintGraphDisplay(cpu_usage, mem_usage, bars=50):
     cpu_ratio = (cpu_usage / 100)
