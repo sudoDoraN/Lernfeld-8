@@ -144,7 +144,7 @@ if __name__ == '__main__':
     for opt, arg in opts:
         if opt == '-h':
             PrintHelpMessage()
-            sys.exit(1)
+            sys.exit()
         elif opt == '-r':
             repeat = arg
 
@@ -192,3 +192,4 @@ if __name__ == '__main__':
 
     except Exception as e:
         print(f"{Colors.CRITICAL}Fehler: {e}{Colors.END}")
+        sys.exit(1)
