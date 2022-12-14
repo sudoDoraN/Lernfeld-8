@@ -1,3 +1,4 @@
+# Imports von verschiedenen Modulen, die wir benutzen.
 import getpass
 import os
 import platform
@@ -10,7 +11,7 @@ from datetime import datetime
 
 #
 # Klasse: Colors
-# Wird benutzt um den Output grafisch zu formatieren
+# Wird benutzt um den Output grafisch zu formatieren.
 #
 class Colors:
     INFO = '\033[4;36m'
@@ -24,44 +25,57 @@ class Colors:
 
 #
 # Getter Funktionen
+# Werden aufgerufen um Attribute zu abzurufen.
 #
 def GetHostname():
+    # Abruf der eindeutigen Bezeichnung des Computers.
     return socket.gethostname()
 
 def GetLoggedInUser():
+    # Abruf des angemeldeten Users.
     return getpass.getuser()
 
 def GetCPUCount(useLogical):
+    # Abruf der Anzahl logischer und physischer Kerne via Boolean.
     return psutil.cpu_count(logical=useLogical)
 
 def GetCPUPercent():
+    # 
     return psutil.cpu_percent(interval=1)
 
 def GetMemoryPercent():
+    # Abruf der Auslastung des RAMs in Prozent.
     return psutil.virtual_memory().percent
 
 def GetDiskUsagePercent(disk):
+    # Abruf der Auslastung der Laufwerke in Prozent.
     return psutil.disk_usage(disk).percent
 
 def GetDisks():
+    # Abruf aller angeschlossener Laufwerke.
     return psutil.disk_partitions(all=True)
 
 def GetRelease():
+    # Abruf der Version des Betriebssystems.
+    # Windows 11 fällt unter Windows 10, also wird der Output angepasst.
     if platform.release() == "10":
         return "10/11"
     else:
         return platform.release()
 
 def GetSystem():
+    # Abruf des Betriebssystems.
     return platform.system()
 
 #
 # Funktionen
 #
 def ClearScreen():
+    # Funktin zum 'clearen' der Konsole, Anpassung an verschiedene Systeme geschieht automatisch.
     os.system('cls' if os.name=='nt' else 'clear')
 
 def GetOSName():
+    # Funktion, welche die Systemstruktur ausgibt.
     if os.name == "nt":
         return "NT"
     elif os.name == "posix":
@@ -70,6 +84,7 @@ def GetOSName():
         return "Unknown"
 
 def WriteToLog(message):
+    # Funktion, welche die Logdatei täglich erstellt und aktualisiert (Console Output -> TXT).
     fileName = f"{datetime.today().strftime('%d-%m-%y')}.log"
 
     with open(fileName, "a") as logFile:
