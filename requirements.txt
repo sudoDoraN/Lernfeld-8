@@ -1,2 +1,2 @@
-psinfo
-cpuinfo
+psutil==5.9.4
+py-cpuinfo==9.0.0

@@ -1,9 +1,11 @@
+import getpass
 import os
 import platform
 import sys
 import psutil
 import cpuinfo
 import socket
+import getopt
 from datetime import datetime
 
 #
@@ -26,7 +28,7 @@ def GetHostname():
     return socket.gethostname()
 
 def GetLoggedInUser():
-    return os.getlogin()
+    return getpass.getuser()
 
 def GetCPUCount(useLogical):
     return psutil.cpu_count(logical=useLogical)
@@ -49,13 +51,16 @@ def GetRelease():
     else:
         return platform.release()
 
+def GetSystem():
+    return platform.system()
+
 #
 # Funktionen
 #
 def ClearScreen():
     os.system('cls' if os.name=='nt' else 'clear')
 
-def GetSystem():
+def GetOSName():
     if os.name == "nt":
         return "NT"
     elif os.name == "posix":
@@ -81,32 +86,33 @@ def PrintMessageInfo(timestamp):
 def PrintMessageCPU(cpuPercent):
     if cpuPercent >= 90:
         print(f"{Colors.CRITICAL}{Colors.BOLD}{Colors.UNDERLINE}KRITISCH:{Colors.END}{Colors.CRITICAL} CPU-Auslastung: Hoch - Aktuell: {cpuPercent}%{Colors.END}")
-        WriteToLog(f"[{timestamp}] KRITISCH: CPU-Auslastung: Hoch - Aktuell: {cpuPercent}%")
+        WriteToLog(f"[{timestamp} - {GetLoggedInUser()}] KRITISCH: CPU-Auslastung: Hoch - Aktuell: {cpuPercent}%")
     elif cpuPercent >= 60 and cpuPercent <= 89:
         print(f"{Colors.WARNING}{Colors.BOLD}{Colors.UNDERLINE}WARNUNG:{Colors.END}{Colors.WARNING} CPU-Auslastung: Mittel - Aktuell: {cpuPercent}%{Colors.END}")
-        WriteToLog(f"[{timestamp}] WARNUNG: CPU-Auslastung: Mittel - Aktuell: {cpuPercent}%")
+        WriteToLog(f"[{timestamp} - {GetLoggedInUser()}] WARNUNG: CPU-Auslastung: Mittel - Aktuell: {cpuPercent}%")
     else:
         print(f"{Colors.OK}{Colors.BOLD}{Colors.UNDERLINE}OK:{Colors.END}{Colors.OK} CPU-Auslastung: Minimal - Aktuell: {cpuPercent}%{Colors.END}")
-        WriteToLog(f"[{timestamp}] OK: CPU-Auslastung: Minimal - Aktuell: {cpuPercent}%")
+        WriteToLog(f"[{timestamp} - {GetLoggedInUser()}] OK: CPU-Auslastung: Minimal - Aktuell: {cpuPercent}%")
 
 def PrintMessageRAM(memoryPercent):
     if memoryPercent >= 90:
         print(f"{Colors.CRITICAL}{Colors.BOLD}{Colors.UNDERLINE}KRITISCH:{Colors.END}{Colors.CRITICAL} RAM-Auslastung: Hoch - Aktuell: {memoryPercent}%{Colors.END}")
-        WriteToLog(f"[{timestamp}] KRITISCH: RAM-Auslastung: Hoch - Aktuell: {memoryPercent}%")
+        WriteToLog(f"[{timestamp} - {GetLoggedInUser()}] KRITISCH: RAM-Auslastung: Hoch - Aktuell: {memoryPercent}%")
     if memoryPercent >= 60 and memoryPercent <= 89:
         print(f"{Colors.WARNING}{Colors.BOLD}{Colors.UNDERLINE}WARNUNG:{Colors.END}{Colors.WARNING} RAM-Auslastung: Mittel - Aktuell: {memoryPercent}%{Colors.END}")
-        WriteToLog(f"[{timestamp}] WARNUNG: RAM-Auslastung: Mittel - Aktuell: {memoryPercent}%")
+        WriteToLog(f"[{timestamp} - {GetLoggedInUser()}] WARNUNG: RAM-Auslastung: Mittel - Aktuell: {memoryPercent}%")
     else:
         print(f"{Colors.OK}{Colors.BOLD}{Colors.UNDERLINE}OK:{Colors.END}{Colors.OK} RAM-Auslastung: Minimal - Aktuell: {memoryPercent}%{Colors.END}")
-        WriteToLog(f"[{timestamp}] OK: RAM-Auslastung: Minimal - Aktuell: {memoryPercent}%")
+        WriteToLog(f"[{timestamp} - {GetLoggedInUser()}] OK: RAM-Auslastung: Minimal - Aktuell: {memoryPercent}%")
 
 def PrintMessageDisk(disks):
-    print (f"{Colors.UNDERLINE}{Colors.BOLD}Speicherplatz:{Colors.END}\n")
-    for disk in disks:
-        if "Z:\\" not in disk:
-            disk_usage = GetDiskUsagePercent(disk.device)
-            print (f"{Colors.UNDERLINE}{Colors.BOLD}{disk.device}:{Colors.END} {disk_usage}% {Colors.END}")
-            WriteToLog(f"[{timestamp}] {disk.device}: {disk_usage}%")
+    if GetLoggedInUser() != "runner":
+        print (f"{Colors.UNDERLINE}{Colors.BOLD}Speicherplatz:{Colors.END}\n")
+        for disk in disks:
+            if "Z:\\" not in disk:
+                disk_usage = GetDiskUsagePercent(disk.device)
+                print (f"{Colors.UNDERLINE}{Colors.BOLD}{disk.device}:{Colors.END} {disk_usage}% {Colors.END}")
+                WriteToLog(f"[{timestamp} - {GetLoggedInUser()}] {disk.device}: {disk_usage}%")
 
 def PrintGraphDisplay(cpu_usage, mem_usage, bars=50):
     cpu_ratio = (cpu_usage / 100)
@@ -119,44 +125,71 @@ def PrintGraphDisplay(cpu_usage, mem_usage, bars=50):
     print(f"{Colors.BOLD}CPU Usage:  |{cpu_bars}|  ", end="\n")
     print(f"RAM Usage:  |{mem_bars}|{Colors.END}  ", end="\n")
 
+def PrintHelpMessage():
+    print("")
+    print("MonitorRealtime.py")
+    print("Benutze: python MonitorRealtime.py [-h] [-r <Anzahl>]")
+    print("")
+    print("Mögliche Argumente:")
+    print(" -h : Ausgabe der Hilfe")
+    print(" -r <Anzahl> : Wie oft das Skript wiederholt werden soll")
+    print("")
+
 #
 # Main
 #
-try:
-    # Satische Variablen
-    system = GetSystem()
-    prozessor = cpuinfo.get_cpu_info()['brand_raw']
-    cpucount = GetCPUCount(False)
-    logicalcount = GetCPUCount(True)
-    systemname = platform.system()
-    systemrelease = GetRelease()
-    
+if __name__ == '__main__':
+    opts, args = getopt.getopt(sys.argv[1:], "hr:")
 
-    # While-Schleife
-    while True:
-        timestamp = datetime.now().strftime("%d/%m/%y - %H:%M:%S")
-        cpuPercent = GetCPUPercent()
-        memoryPercent = GetMemoryPercent()
-        disks = GetDisks()
+    for opt, arg in opts:
+        if opt == '-h':
+            PrintHelpMessage()
+            sys.exit()
+        elif opt == '-r':
+            repeat = arg
 
-        ClearScreen()
+    try:
+        # Satische Variablen
+        system = GetOSName()
+        prozessor = cpuinfo.get_cpu_info()['brand_raw']
+        cpucount = GetCPUCount(False)
+        logicalcount = GetCPUCount(True)
+        systemname = GetSystem()
+        systemrelease = GetRelease()
+        repeatCounter = 0
 
-        print("")
-        PrintMessageInfo(timestamp)
-        print("")
-        PrintMessageCPU(cpuPercent)
-        print("")
-        PrintMessageRAM(memoryPercent)
-        print("")
-        PrintMessageDisk(disks)
-        print("")
-        PrintGraphDisplay(cpuPercent, memoryPercent, 30)
-        print("")
+        # While-Schleife
+        while True:
+            timestamp = datetime.now().strftime("%d/%m/%y - %H:%M:%S")
+            cpuPercent = GetCPUPercent()
+            memoryPercent = GetMemoryPercent()
+            disks = GetDisks()
 
-except KeyboardInterrupt:
+            ClearScreen()
 
-    print("Monitoring beendet!")
-    sys.exit(1)
+            print("")
+            PrintMessageInfo(timestamp)
+            print("")
+            PrintMessageCPU(cpuPercent)
+            print("")
+            PrintMessageRAM(memoryPercent)
+            print("")
+            PrintMessageDisk(disks)
+            print("")
+            PrintGraphDisplay(cpuPercent, memoryPercent, 30)
+            print("")
 
-except:
-    print("Ein Unbekannter Fehler ist aufgetreten!")
+            if 'repeat' in globals():
+                repeatCounter += 1
+                if repeatCounter >= int(repeat):
+                    sys.exit()
+
+    except KeyboardInterrupt:
+
+        print(f"{Colors.INFO}Monitoring beendet!{Colors.END}")
+        print("")
+        sys.exit()
+
+    except Exception as e:
+        print(f"{Colors.CRITICAL}Fehler: {e}{Colors.END}")
+        sys.exit(1)
