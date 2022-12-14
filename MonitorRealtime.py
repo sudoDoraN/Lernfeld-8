@@ -10,6 +10,7 @@ from datetime import datetime
 
 #
 # Klasse: Colors
+# Wird benutzt um den Output grafisch zu formatieren
 #
 class Colors:
     INFO = '\033[4;36m'
