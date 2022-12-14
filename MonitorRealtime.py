@@ -91,15 +91,17 @@ def WriteToLog(message):
         logFile.write(message + "\n")
 
 #
-# Ausgabe Nachrichten
+# Ausgabe des Outputs in Modulen
 #
 def PrintMessageInfo(timestamp):
+    # Modul: Info | Statische Information übers System | Zeitstempel, User, Rechner, Kerne
     print(f"{Colors.CLUE}[{timestamp}] {GetHostname()} - {GetLoggedInUser()}:\n\n{Colors.END}{Colors.INFO}Prozessor: {prozessor}\nKerne: {cpucount}\nLogische Prozessoren: {logicalcount}{Colors.END}\n")
     print(f"{Colors.UNDERLINE}{Colors.BOLD}System:{Colors.END} {system}")
     print(f"{Colors.UNDERLINE}{Colors.BOLD}SystemName:{Colors.END} {systemname}")
     print(f"{Colors.UNDERLINE}{Colors.BOLD}SystemRelease:{Colors.END} {systemrelease}")
 
 def PrintMessageCPU(cpuPercent):
+    # Modul: CPU | Dynamische CPU-Auslastung | Drei Zustände: Kritisch (90%), Warnung (60%), OK (0%)
     if cpuPercent >= 90:
         print(f"{Colors.CRITICAL}{Colors.BOLD}{Colors.UNDERLINE}KRITISCH:{Colors.END}{Colors.CRITICAL} CPU-Auslastung: Hoch - Aktuell: {cpuPercent}%{Colors.END}")
         WriteToLog(f"[{timestamp} - {GetLoggedInUser()}] KRITISCH: CPU-Auslastung: Hoch - Aktuell: {cpuPercent}%")
@@ -111,6 +113,7 @@ def PrintMessageCPU(cpuPercent):
         WriteToLog(f"[{timestamp} - {GetLoggedInUser()}] OK: CPU-Auslastung: Minimal - Aktuell: {cpuPercent}%")
 
 def PrintMessageRAM(memoryPercent):
+    # Modul: RAM | Dynamische RAM-Auslastung | Drei Zustände: Kritisch (90%), Warnung (60%), OK (0%)
     if memoryPercent >= 90:
         print(f"{Colors.CRITICAL}{Colors.BOLD}{Colors.UNDERLINE}KRITISCH:{Colors.END}{Colors.CRITICAL} RAM-Auslastung: Hoch - Aktuell: {memoryPercent}%{Colors.END}")
         WriteToLog(f"[{timestamp} - {GetLoggedInUser()}] KRITISCH: RAM-Auslastung: Hoch - Aktuell: {memoryPercent}%")
@@ -122,26 +125,31 @@ def PrintMessageRAM(memoryPercent):
         WriteToLog(f"[{timestamp} - {GetLoggedInUser()}] OK: RAM-Auslastung: Minimal - Aktuell: {memoryPercent}%")
 
 def PrintMessageDisk(disks):
+    # Modul: DISK | Dynamische Disk-Auslastung | Jedes angeschlossene Laufwerk (Ausgeschlossen Z:)
     if GetLoggedInUser() != "runner":
         print (f"{Colors.UNDERLINE}{Colors.BOLD}Speicherplatz:{Colors.END}\n")
         for disk in disks:
-            if "Z:\\" not in disk:
+            if "Z:\\" not in disk: #Ausschluss Z:
                 disk_usage = GetDiskUsagePercent(disk.device)
                 print (f"{Colors.UNDERLINE}{Colors.BOLD}{disk.device}:{Colors.END} {disk_usage}% {Colors.END}")
                 WriteToLog(f"[{timestamp} - {GetLoggedInUser()}] {disk.device}: {disk_usage}%")
 
 def PrintGraphDisplay(cpu_usage, mem_usage, bars=50):
+    # Modul: GRAPH | Dynamische Anzeige von CPU & RAM | Modular
     cpu_ratio = (cpu_usage / 100)
     cpu_bars = "█" * int(cpu_ratio * bars) + "-" * (bars - int(cpu_ratio * bars))
+    # Graph-Modul für CPU
 
     mem_ratio = (mem_usage / 100.0)
     mem_bars = "█" * int(mem_ratio * bars) + "-" * (bars - int(mem_ratio * bars))
+    #Graph-Modul für RAM
 
     print(f"{Colors.UNDERLINE}{Colors.BOLD}Graph:{Colors.END}", end="\n")
     print(f"{Colors.BOLD}CPU Usage:  |{cpu_bars}|  ", end="\n")
     print(f"RAM Usage:  |{mem_bars}|{Colors.END}  ", end="\n")
 
 def PrintHelpMessage():
+    # Ausgabe der Helpmessage | Parameter "-h"
     print("")
     print("MonitorRealtime.py")
     print("Benutze: python MonitorRealtime.py [-h] [-r <Anzahl>]")
@@ -150,14 +158,17 @@ def PrintHelpMessage():
     print(" -h : Ausgabe der Hilfe")
     print(" -r <Anzahl> : Wie oft das Skript wiederholt werden soll")
     print("")
-
+#
 #
 # Main
+#
+#
 #
 if __name__ == '__main__':
     opts, args = getopt.getopt(sys.argv[1:], "hr:")
 
     for opt, arg in opts:
+        #
         if opt == '-h':
             PrintHelpMessage()
             sys.exit()
@@ -165,7 +176,7 @@ if __name__ == '__main__':
             repeat = arg
 
     try:
-        # Satische Variablen
+        # 
         system = GetOSName()
         prozessor = cpuinfo.get_cpu_info()['brand_raw']
         cpucount = GetCPUCount(False)
@@ -174,7 +185,7 @@ if __name__ == '__main__':
         systemrelease = GetRelease()
         repeatCounter = 0
 
-        # While-Schleife
+        # While-Schleife, welche den Output ausgibt.
         while True:
             timestamp = datetime.now().strftime("%d/%m/%y - %H:%M:%S")
             cpuPercent = GetCPUPercent()
@@ -195,17 +206,21 @@ if __name__ == '__main__':
             PrintGraphDisplay(cpuPercent, memoryPercent, 30)
             print("")
 
+            # X Wiederholungen, wenn angegeben | Unterbrechung der while-Schleife
             if 'repeat' in globals():
                 repeatCounter += 1
                 if repeatCounter >= int(repeat):
                     sys.exit()
 
+    # Exceptions
     except KeyboardInterrupt:
+        #
 
         print(f"{Colors.INFO}Monitoring beendet!{Colors.END}")
         print("")
         sys.exit()
 
     except Exception as e:
+        #
         print(f"{Colors.CRITICAL}Fehler: {e}{Colors.END}")
         sys.exit(1)
