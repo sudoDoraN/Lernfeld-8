@@ -112,7 +112,7 @@ def PrintMessageDisk(disks):
             if "Z:\\" not in disk:
                 disk_usage = GetDiskUsagePercent(disk.device)
                 print (f"{Colors.UNDERLINE}{Colors.BOLD}{disk.device}:{Colors.END} {disk_usage}% {Colors.END}")
-                WriteToLog(f"[{timestamp}] {disk.device}: {disk_usage}%")
+                WriteToLog(f"[{timestamp} - {GetLoggedInUser()}] {disk.device}: {disk_usage}%")
 
 def PrintGraphDisplay(cpu_usage, mem_usage, bars=50):
     cpu_ratio = (cpu_usage / 100)
