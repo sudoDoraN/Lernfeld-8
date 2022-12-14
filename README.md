@@ -3,3 +3,5 @@
 Lernfeld 08 für BS14
 
 Monitoring Script
+
+Realtime / Output Log
