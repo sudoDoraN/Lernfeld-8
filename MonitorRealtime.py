@@ -100,7 +100,7 @@ def PrintMessageInfo(timestamp):
     print(f"{Colors.UNDERLINE}{Colors.BOLD}SystemName:{Colors.END} {systemname}")
     print(f"{Colors.UNDERLINE}{Colors.BOLD}SystemRelease:{Colors.END} {systemrelease}")
 
-def PrintMessageCPU(cpuPercent):
+def PrintMessageCPU(timestamp, cpuPercent):
     # Modul: CPU | Dynamische CPU-Auslastung | Drei Zustände: Kritisch (90%), Warnung (60%), OK (0%)
     if cpuPercent >= 90:
         print(f"{Colors.CRITICAL}{Colors.BOLD}{Colors.UNDERLINE}KRITISCH:{Colors.END}{Colors.CRITICAL} CPU-Auslastung: Hoch - Aktuell: {cpuPercent}%{Colors.END}")
@@ -112,7 +112,7 @@ def PrintMessageCPU(cpuPercent):
         print(f"{Colors.OK}{Colors.BOLD}{Colors.UNDERLINE}OK:{Colors.END}{Colors.OK} CPU-Auslastung: Minimal - Aktuell: {cpuPercent}%{Colors.END}")
         WriteToLog(f"[{timestamp} - {GetLoggedInUser()}] OK: CPU-Auslastung: Minimal - Aktuell: {cpuPercent}%")
 
-def PrintMessageRAM(memoryPercent):
+def PrintMessageRAM(timestamp, memoryPercent):
     # Modul: RAM | Dynamische RAM-Auslastung | Drei Zustände: Kritisch (90%), Warnung (60%), OK (0%)
     if memoryPercent >= 90:
         print(f"{Colors.CRITICAL}{Colors.BOLD}{Colors.UNDERLINE}KRITISCH:{Colors.END}{Colors.CRITICAL} RAM-Auslastung: Hoch - Aktuell: {memoryPercent}%{Colors.END}")
@@ -125,7 +125,7 @@ def PrintMessageRAM(memoryPercent):
         WriteToLog(f"[{timestamp} - {GetLoggedInUser()}] OK: RAM-Auslastung: Minimal - Aktuell: {memoryPercent}%")
 
 
-def PrintMessageDisk(disks):
+def PrintMessageDisk(timestamp, disks):
     # Modul: DISK | Dynamische Disk-Auslastung | Jedes angeschlossene Laufwerk (Ausgeschlossen Z:)
     print(f"{Colors.UNDERLINE}{Colors.BOLD}Speicherplatz:{Colors.END}\n")
     for disk in disks:
@@ -200,11 +200,11 @@ if __name__ == '__main__':
             print("")
             PrintMessageInfo(timestamp)
             print("")
-            PrintMessageCPU(cpuPercent)
+            PrintMessageCPU(timestamp, cpuPercent)
             print("")
-            PrintMessageRAM(memoryPercent)
+            PrintMessageRAM(timestamp, memoryPercent)
             print("")
-            PrintMessageDisk(disks)
+            PrintMessageDisk(timestamp, disks)
             print("")
             PrintGraphDisplay(cpuPercent, memoryPercent, 30)
             print("")
