@@ -97,8 +97,8 @@ def PrintMessageInfo(timestamp):
     # Modul: Info | Statische Information übers System | Zeitstempel, User, Rechner, Kerne
     print(f"{Colors.CLUE}[{timestamp}] {GetHostname()} - {GetLoggedInUser()}:\n\n{Colors.END}{Colors.INFO}Prozessor: {prozessor}\nKerne: {cpucount}\nLogische Prozessoren: {logicalcount}{Colors.END}\n")
     print(f"{Colors.UNDERLINE}{Colors.BOLD}System:{Colors.END} {system}")
-    print(f"{Colors.UNDERLINE}{Colors.BOLD}SystemName:{Colors.END} {systemname}")
-    print(f"{Colors.UNDERLINE}{Colors.BOLD}SystemRelease:{Colors.END} {systemrelease}")
+    print(f"{Colors.UNDERLINE}{Colors.BOLD}System-Name:{Colors.END} {systemname}")
+    print(f"{Colors.UNDERLINE}{Colors.BOLD}System-Release:{Colors.END} {systemrelease}")
 
 def PrintMessageCPU(timestamp, cpuPercent):
     # Modul: CPU | Dynamische CPU-Auslastung | Drei Zustände: Kritisch (90%), Warnung (60%), OK (0%)
@@ -181,11 +181,11 @@ if __name__ == '__main__':
     try:
         # 
         system = GetOSName()
+        systemname = GetSystem()
+        systemrelease = GetRelease()
         prozessor = cpuinfo.get_cpu_info()['brand_raw']
         cpucount = GetCPUCount(False)
         logicalcount = GetCPUCount(True)
-        systemname = GetSystem()
-        systemrelease = GetRelease()
         repeatCounter = 0
 
         # While-Schleife, welche den Output ausgibt.
