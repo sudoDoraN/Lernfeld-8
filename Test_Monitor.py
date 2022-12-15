@@ -1,9 +1,9 @@
+from MonitorRealtime import Colors
+from io import StringIO
+from datetime import datetime
 import unittest
 import MonitorRealtime
-from MonitorRealtime import Colors
 import pathlib
-import datetime
-from io import StringIO
 import sys
 
 class Capturing(list):
