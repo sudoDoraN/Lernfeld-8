@@ -87,7 +87,7 @@ def WriteToLog(message):
     # Funktion, welche die Logdatei täglich erstellt und aktualisiert (Console Output -> TXT).
     fileName = f"{datetime.today().strftime('%d-%m-%y')}.log"
 
-    with open(fileName, "a") as logFile:
+    with open(fileName, "a", encoding="utf-8") as logFile:
         logFile.write(message + "\n")
 
 #
@@ -124,15 +124,18 @@ def PrintMessageRAM(memoryPercent):
         print(f"{Colors.OK}{Colors.BOLD}{Colors.UNDERLINE}OK:{Colors.END}{Colors.OK} RAM-Auslastung: Minimal - Aktuell: {memoryPercent}%{Colors.END}")
         WriteToLog(f"[{timestamp} - {GetLoggedInUser()}] OK: RAM-Auslastung: Minimal - Aktuell: {memoryPercent}%")
 
+
 def PrintMessageDisk(disks):
     # Modul: DISK | Dynamische Disk-Auslastung | Jedes angeschlossene Laufwerk (Ausgeschlossen Z:)
-    if GetLoggedInUser() != "runner":
-        print (f"{Colors.UNDERLINE}{Colors.BOLD}Speicherplatz:{Colors.END}\n")
-        for disk in disks:
-            if "Z:\\" not in disk: #Ausschluss Z:
-                disk_usage = GetDiskUsagePercent(disk.device)
-                print (f"{Colors.UNDERLINE}{Colors.BOLD}{disk.device}:{Colors.END} {disk_usage}% {Colors.END}")
-                WriteToLog(f"[{timestamp} - {GetLoggedInUser()}] {disk.device}: {disk_usage}%")
+    print(f"{Colors.UNDERLINE}{Colors.BOLD}Speicherplatz:{Colors.END}\n")
+    for disk in disks:
+        try:
+            disk_usage = GetDiskUsagePercent(disk.device)
+            print(f"{Colors.UNDERLINE}{Colors.BOLD}{disk.device}:{Colors.END} {disk_usage}% {Colors.END}")
+            WriteToLog(f"[{timestamp} - {GetLoggedInUser()}] {disk.device}: {disk_usage}%")
+        except Exception as e:
+            print(f"{Colors.UNDERLINE}{Colors.CRITICAL}{disk.device}: {e}{Colors.END}")
+            WriteToLog(f"[{timestamp} - {GetLoggedInUser()}] {disk.device}: {e}")
 
 def PrintGraphDisplay(cpu_usage, mem_usage, bars=50):
     # Modul: GRAPH | Dynamische Anzeige von CPU & RAM | Modular
