@@ -126,16 +126,9 @@ def PrintMessageInfo(timestamp):
 
 def PrintMessageCPU(timestamp, cpuPercent):
     # Modul: CPU | Dynamische CPU-Auslastung | Drei Zustände: Kritisch (90%), Warnung (60%), OK (0%)
-    global alertCPU
-
     if cpuPercent >= 90:
         print(f"{Colors.CRITICAL}{Colors.BOLD}{Colors.UNDERLINE}KRITISCH:{Colors.END}{Colors.CRITICAL} CPU-Auslastung: Hoch - Aktuell: {cpuPercent}%{Colors.END}")
         WriteToLog(f"[{timestamp} - {GetLoggedInUser()}] KRITISCH: CPU-Auslastung: Hoch - Aktuell: {cpuPercent}%")
-
-        if alertCPU == False:
-            SendMail("KRITISCH: CPU-Auslastung", f"Die CPU-Auslastung ist über 90% auf der Maschine '{GetHostname()}'.")
-            alertCPU = True
-
     elif cpuPercent >= 60 and cpuPercent <= 89:
         print(f"{Colors.WARNING}{Colors.BOLD}{Colors.UNDERLINE}WARNUNG:{Colors.END}{Colors.WARNING} CPU-Auslastung: Mittel - Aktuell: {cpuPercent}%{Colors.END}")
         WriteToLog(f"[{timestamp} - {GetLoggedInUser()}] WARNUNG: CPU-Auslastung: Mittel - Aktuell: {cpuPercent}%")
@@ -143,22 +136,11 @@ def PrintMessageCPU(timestamp, cpuPercent):
         print(f"{Colors.OK}{Colors.BOLD}{Colors.UNDERLINE}OK:{Colors.END}{Colors.OK} CPU-Auslastung: Minimal - Aktuell: {cpuPercent}%{Colors.END}")
         WriteToLog(f"[{timestamp} - {GetLoggedInUser()}] OK: CPU-Auslastung: Minimal - Aktuell: {cpuPercent}%")
 
-        if alertCPU:
-            SendMail("OK: CPU-Auslastung", f"Die CPU-Auslastung ist wieder unter 90%. [Maschine: {GetHostname()}]")
-            alertCPU = False
-
 def PrintMessageRAM(timestamp, memoryPercent):
     # Modul: RAM | Dynamische RAM-Auslastung | Drei Zustände: Kritisch (90%), Warnung (60%), OK (0%)
-    global alertRAM
-
     if memoryPercent >= 90:
         print(f"{Colors.CRITICAL}{Colors.BOLD}{Colors.UNDERLINE}KRITISCH:{Colors.END}{Colors.CRITICAL} RAM-Auslastung: Hoch - Aktuell: {memoryPercent}%{Colors.END}")
         WriteToLog(f"[{timestamp} - {GetLoggedInUser()}] KRITISCH: RAM-Auslastung: Hoch - Aktuell: {memoryPercent}%")
-
-        if alertRAM == False:
-            SendMail("KRITISCH: RAM-Auslastung", f"Die RAM-Auslastung ist über 90% auf der Maschine '{GetHostname()}'.")
-            alertRAM = True
-
     elif memoryPercent >= 60 and memoryPercent <= 89:
         print(f"{Colors.WARNING}{Colors.BOLD}{Colors.UNDERLINE}WARNUNG:{Colors.END}{Colors.WARNING} RAM-Auslastung: Mittel - Aktuell: {memoryPercent}%{Colors.END}")
         WriteToLog(f"[{timestamp} - {GetLoggedInUser()}] WARNUNG: RAM-Auslastung: Mittel - Aktuell: {memoryPercent}%")
@@ -166,9 +148,6 @@ def PrintMessageRAM(timestamp, memoryPercent):
         print(f"{Colors.OK}{Colors.BOLD}{Colors.UNDERLINE}OK:{Colors.END}{Colors.OK} RAM-Auslastung: Minimal - Aktuell: {memoryPercent}%{Colors.END}")
         WriteToLog(f"[{timestamp} - {GetLoggedInUser()}] OK: RAM-Auslastung: Minimal - Aktuell: {memoryPercent}%")
 
-        if alertRAM:
-            SendMail("OK: RAM-Auslastung", f"Die RAM-Auslastung ist wieder unter 90%. [Maschine: {GetHostname()}]")
-            alertRAM = False
 
 
 def PrintMessageDisk(timestamp, disks):
@@ -207,6 +186,27 @@ def PrintHelpMessage():
     print(" -h : Ausgabe der Hilfe")
     print(" -r <Anzahl> : Wie oft das Skript wiederholt werden soll")
     print("")
+
+def SendInfoMails(cpuPercent, memoryPercent):
+    global alertCPU
+    global alertRAM
+
+    if alertCPU == False and cpuPercent >= 90:
+        SendMail("KRITISCH: CPU-Auslastung",
+                 f"Die CPU-Auslastung ist über 90% auf der Maschine '{GetHostname()}'.")
+        alertCPU = True
+    elif alertCPU and cpuPercent < 90:
+        SendMail("OK: CPU-Auslastung", f"Die CPU-Auslastung ist wieder unter 90%. [Maschine: {GetHostname()}]")
+        alertCPU = False
+
+    if alertRAM == False and memoryPercent >= 90:
+        SendMail("KRITISCH: RAM-Auslastung",
+                 f"Die RAM-Auslastung ist über 90% auf der Maschine '{GetHostname()}'.")
+        alertRAM = True
+    elif alertRAM and memoryPercent < 90:
+        SendMail("OK: RAM-Auslastung", f"Die RAM-Auslastung ist wieder unter 90%. [Maschine: {GetHostname()}]")
+        alertRAM = False
+
 
 #
 #
@@ -269,6 +269,8 @@ if __name__ == '__main__':
             print("")
             PrintGraphDisplay(cpuPercent, memoryPercent, 30)
             print("")
+
+            SendInfoMails(cpuPercent, memoryPercent)
 
             # X Wiederholungen, wenn angegeben | Unterbrechung der while-Schleife
             if 'repeat' in globals():
