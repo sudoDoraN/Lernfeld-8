@@ -7,7 +7,10 @@ import psutil
 import cpuinfo
 import socket
 import getopt
+import smtplib
+import ssl
 from datetime import datetime
+from email.mime.text import MIMEText
 
 #
 # Klasse: Colors
@@ -90,6 +93,27 @@ def WriteToLog(message):
     with open(fileName, "a", encoding="utf-8") as logFile:
         logFile.write(message + "\n")
 
+def SendMail(subject, message):
+    if 'smtpserver' in globals() and 'smtpport' in globals() and 'sendermail' in globals() and 'smtppassword' in globals() and 'receivermail' in globals():
+        try:
+            with smtplib.SMTP_SSL(smtpserver, smtpport, ssl.create_default_context()) as mailserver:
+                mailserver.login(sendermail, smtppassword)
+
+                messageText = MIMEText(message)
+                messageText["Subject"] = subject
+                messageText["From"] = sendermail
+                messageText["To"] = receivermail
+
+                mailserver.sendmail(sendermail, receivermail, messageText.as_string())
+
+                WriteToLog(f"[{datetime.now().strftime('%d/%m/%y - %H:%M:%S')} - {GetLoggedInUser()}] E-Mail an '{receivermail}' mit dem Betreff '{subject}' verschickt!")
+
+                mailserver.close()
+
+        except Exception as e:
+            print(f"{Colors.CRITICAL}Fehler mit dem SMTP-Server! Fehler: {e}{Colors.END}")
+            sys.exit(1)
+
 #
 # Ausgabe des Outputs in Modulen
 #
@@ -102,9 +126,16 @@ def PrintMessageInfo(timestamp):
 
 def PrintMessageCPU(timestamp, cpuPercent):
     # Modul: CPU | Dynamische CPU-Auslastung | Drei Zustände: Kritisch (90%), Warnung (60%), OK (0%)
+    global alertCPU
+
     if cpuPercent >= 90:
         print(f"{Colors.CRITICAL}{Colors.BOLD}{Colors.UNDERLINE}KRITISCH:{Colors.END}{Colors.CRITICAL} CPU-Auslastung: Hoch - Aktuell: {cpuPercent}%{Colors.END}")
         WriteToLog(f"[{timestamp} - {GetLoggedInUser()}] KRITISCH: CPU-Auslastung: Hoch - Aktuell: {cpuPercent}%")
+
+        if alertCPU == False:
+            SendMail("KRITISCH: CPU-Auslastung", f"Die CPU-Auslastung ist über 90% auf der Maschine '{GetHostname()}'.")
+            alertCPU = True
+
     elif cpuPercent >= 60 and cpuPercent <= 89:
         print(f"{Colors.WARNING}{Colors.BOLD}{Colors.UNDERLINE}WARNUNG:{Colors.END}{Colors.WARNING} CPU-Auslastung: Mittel - Aktuell: {cpuPercent}%{Colors.END}")
         WriteToLog(f"[{timestamp} - {GetLoggedInUser()}] WARNUNG: CPU-Auslastung: Mittel - Aktuell: {cpuPercent}%")
@@ -112,17 +143,32 @@ def PrintMessageCPU(timestamp, cpuPercent):
         print(f"{Colors.OK}{Colors.BOLD}{Colors.UNDERLINE}OK:{Colors.END}{Colors.OK} CPU-Auslastung: Minimal - Aktuell: {cpuPercent}%{Colors.END}")
         WriteToLog(f"[{timestamp} - {GetLoggedInUser()}] OK: CPU-Auslastung: Minimal - Aktuell: {cpuPercent}%")
 
+        if alertCPU:
+            SendMail("OK: CPU-Auslastung", f"Die CPU-Auslastung ist wieder unter 90%. [Maschine: {GetHostname()}]")
+            alertCPU = False
+
 def PrintMessageRAM(timestamp, memoryPercent):
     # Modul: RAM | Dynamische RAM-Auslastung | Drei Zustände: Kritisch (90%), Warnung (60%), OK (0%)
+    global alertRAM
+
     if memoryPercent >= 90:
         print(f"{Colors.CRITICAL}{Colors.BOLD}{Colors.UNDERLINE}KRITISCH:{Colors.END}{Colors.CRITICAL} RAM-Auslastung: Hoch - Aktuell: {memoryPercent}%{Colors.END}")
         WriteToLog(f"[{timestamp} - {GetLoggedInUser()}] KRITISCH: RAM-Auslastung: Hoch - Aktuell: {memoryPercent}%")
-    if memoryPercent >= 60 and memoryPercent <= 89:
+
+        if alertRAM == False:
+            SendMail("KRITISCH: RAM-Auslastung", f"Die RAM-Auslastung ist über 90% auf der Maschine '{GetHostname()}'.")
+            alertRAM = True
+
+    elif memoryPercent >= 60 and memoryPercent <= 89:
         print(f"{Colors.WARNING}{Colors.BOLD}{Colors.UNDERLINE}WARNUNG:{Colors.END}{Colors.WARNING} RAM-Auslastung: Mittel - Aktuell: {memoryPercent}%{Colors.END}")
         WriteToLog(f"[{timestamp} - {GetLoggedInUser()}] WARNUNG: RAM-Auslastung: Mittel - Aktuell: {memoryPercent}%")
     else:
         print(f"{Colors.OK}{Colors.BOLD}{Colors.UNDERLINE}OK:{Colors.END}{Colors.OK} RAM-Auslastung: Minimal - Aktuell: {memoryPercent}%{Colors.END}")
         WriteToLog(f"[{timestamp} - {GetLoggedInUser()}] OK: RAM-Auslastung: Minimal - Aktuell: {memoryPercent}%")
+
+        if alertRAM:
+            SendMail("OK: RAM-Auslastung", f"Die RAM-Auslastung ist wieder unter 90%. [Maschine: {GetHostname()}]")
+            alertRAM = False
 
 
 def PrintMessageDisk(timestamp, disks):
@@ -161,6 +207,7 @@ def PrintHelpMessage():
     print(" -h : Ausgabe der Hilfe")
     print(" -r <Anzahl> : Wie oft das Skript wiederholt werden soll")
     print("")
+
 #
 #
 # Main
@@ -168,7 +215,7 @@ def PrintHelpMessage():
 #
 #
 if __name__ == '__main__':
-    opts, args = getopt.getopt(sys.argv[1:], "hr:")
+    opts, args = getopt.getopt(sys.argv[1:], "hr:", ["smtpserver=", "smtpport=", "sendermail=", "smtppassword=", "receivermail="])
 
     for opt, arg in opts:
         #
@@ -177,8 +224,20 @@ if __name__ == '__main__':
             sys.exit()
         elif opt == '-r':
             repeat = arg
+        elif opt == '--smtpserver':
+            smtpserver = arg
+        elif opt == '--smtpport':
+            smtpport = arg
+        elif opt == '--sendermail':
+            sendermail = arg
+        elif opt == '--smtppassword':
+            smtppassword = arg
+        elif opt == '--receivermail':
+            receivermail = arg
 
     try:
+        SendMail("Running", f"Monitor-Skript wird auf der Maschine '{GetHostname()}' ausgeführt!")
+
         # 
         system = GetOSName()
         systemname = GetSystem()
@@ -187,6 +246,8 @@ if __name__ == '__main__':
         cpucount = GetCPUCount(False)
         logicalcount = GetCPUCount(True)
         repeatCounter = 0
+        alertCPU = False
+        alertRAM = False
 
         # While-Schleife, welche den Output ausgibt.
         while True:
@@ -217,13 +278,15 @@ if __name__ == '__main__':
 
     # Exceptions
     except KeyboardInterrupt:
-        #
+        SendMail("Monitor beendet!", f"Monitor-Skript auf der Maschine '{GetHostname()}' beendet.")
 
+        #
         print(f"{Colors.INFO}Monitoring beendet!{Colors.END}")
         print("")
         sys.exit()
 
     except Exception as e:
+        SendMail("Fehler: Monitor-Skript unerwartet beendet!", f"Monitor-Skript auf der Maschine '{GetHostname()}' wurde unerwartet beendet! Fehler: {e}")
         #
         print(f"{Colors.CRITICAL}Fehler: {e}{Colors.END}")
         sys.exit(1)
